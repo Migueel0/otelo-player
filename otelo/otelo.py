@@ -1,3 +1,4 @@
+import copy
 class OthelloGame:
     def __init__(self):
         self.board = self.initial_board()
@@ -18,25 +19,22 @@ class OthelloGame:
         return valid_moves
         
     def is_valid_move(self, x, y, player):
-        directions = [(-1,-1), (-1,0), (-1,1),
-                     (0,-1),          (0,1),
-                     (1,-1),  (1,0),  (1,1)]
-        
+        if self.board[x][y] != 0:
+            return False
         opponent = 3 - player
-        valid = False
-        
+        directions = [(-1,-1), (-1,0), (-1,1),
+                      (0,-1),         (0,1),
+                      (1,-1), (1,0),  (1,1)]
         for dx, dy in directions:
-            tx, ty = x + dx, y + dy
-            if 0 <= tx < 8 and 0 <= ty < 8 and self.board[tx][ty] == opponent:
-                tx += dx
-                ty += dy
-                while 0 <= tx < 8 and 0 <= ty < 8 and self.board[tx][ty] == opponent:
-                    tx += dx
-                    ty += dy
-                if 0 <= tx < 8 and 0 <= ty < 8 and self.board[tx][ty] == player:
-                    valid = True
-                    break
-        return valid
+            nx, ny = x + dx, y + dy
+            found_opponent = False
+            while 0 <= nx < 8 and 0 <= ny < 8 and self.board[nx][ny] == opponent:
+                nx += dx
+                ny += dy
+                found_opponent = True
+            if found_opponent and 0 <= nx < 8 and 0 <= ny < 8 and self.board[nx][ny] == player:
+                return True
+        return False
         
     def make_move(self, move, player):
         x, y = move
@@ -48,20 +46,19 @@ class OthelloGame:
         return False
         
     def flip_tiles(self, x, y, player):
-        directions = [(-1,-1), (-1,0), (-1,1),
-                     (0,-1),          (0,1),
-                     (1,-1),  (1,0),  (1,1)]
         opponent = 3 - player
-        
+        directions = [(-1,-1), (-1,0), (-1,1),
+                      (0,-1),         (0,1),
+                      (1,-1), (1,0),  (1,1)]
         for dx, dy in directions:
-            tx, ty = x + dx, y + dy
-            to_flip = []
-            while 0 <= tx < 8 and 0 <= ty < 8 and self.board[tx][ty] == opponent:
-                to_flip.append((tx, ty))
-                tx += dx
-                ty += dy
-            if 0 <= tx < 8 and 0 <= ty < 8 and self.board[tx][ty] == player:
-                for (fx, fy) in to_flip:
+            nx, ny = x + dx, y + dy
+            tiles_to_flip = []
+            while 0 <= nx < 8 and 0 <= ny < 8 and self.board[nx][ny] == opponent:
+                tiles_to_flip.append((nx, ny))
+                nx += dx
+                ny += dy
+            if tiles_to_flip and 0 <= nx < 8 and 0 <= ny < 8 and self.board[nx][ny] == player:
+                for fx, fy in tiles_to_flip:
                     self.board[fx][fy] = player
         
     def is_game_over(self):
@@ -76,3 +73,9 @@ class OthelloGame:
             return 2
         else:
             return 0 
+
+    def copy(self):
+        new_game = OthelloGame()
+        new_game.board = copy.deepcopy(self.board)
+        new_game.current_player = self.current_player
+        return new_game
