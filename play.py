@@ -28,7 +28,7 @@ def play():
     while not game.is_game_over():
         if game.current_player == player1:
             print_board(game.board)
-            print("Player 1 (negro - B)")
+            print("Player 1 (negro - N)")
             valid_moves = game.get_valid_moves(player1)
             if not valid_moves:
                 print("No hay movimientos válidos. Pasando turno.")
@@ -50,7 +50,7 @@ def play():
             print_board(game.board)
         
         if game.current_player == player2:
-            print("Turno de la IA (blanco - W)...")
+            print("Turno de la IA (blanco - B)...")
             print_board(game.board)
             valid_moves = game.get_valid_moves(player2)
             if not valid_moves:
