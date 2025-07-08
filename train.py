@@ -25,8 +25,17 @@ def create_model(input_shape):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
-def train_model(model, data, labels, epochs=10, batch_size=32):
-    model.fit(data, labels, epochs=epochs, batch_size=batch_size, validation_split=0.2)
+def train_model(model, data, labels, epochs=2, batch_size=64):
+
+    early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+
+    model.fit(
+        data, labels,
+        epochs=epochs,
+        batch_size=batch_size,
+        validation_split=0.2,
+        callbacks=[early_stop]
+    )
 
 def main():
     data, labels = load_game_data('data/othello_data.npz')  
