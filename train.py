@@ -25,7 +25,7 @@ def create_model(input_shape):
     model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
     return model
 
-def train_model(model, data, labels, epochs=2, batch_size=64):
+def train_model(model, data, labels, epochs=100, batch_size=64):
 
     early_stop = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 

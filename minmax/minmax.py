@@ -1,14 +1,16 @@
 import numpy as np
 
 
-def alphabeta(state, depth, alpha, beta, player, maximizing_player, neural_network):
+def alphabeta(state, depth, alpha, beta, player, maximizing_player, neural_network, node_counter=None):
+    if node_counter is not None:
+        node_counter[0] += 1
+
     if depth == 0 or state.is_game_over():
         return None, utility(state, neural_network)
 
     valid_moves = state.get_valid_moves(player)
     if not valid_moves:
-        # Si no hay movimientos válidos, pasa el turno al otro jugador
-        return alphabeta(state, depth, alpha, beta, 3 - player, not maximizing_player, neural_network)
+        return alphabeta(state, depth, alpha, beta, 3 - player, not maximizing_player, neural_network, node_counter)
 
     if maximizing_player:
         max_eval = float('-inf')
@@ -16,7 +18,7 @@ def alphabeta(state, depth, alpha, beta, player, maximizing_player, neural_netwo
         for move in valid_moves:
             state_copy = state.copy()
             state_copy.make_move(move, player)
-            _, eval = alphabeta(state_copy, depth - 1, alpha, beta, 3 - player, False, neural_network)
+            _, eval = alphabeta(state_copy, depth - 1, alpha, beta, 3 - player, False, neural_network, node_counter)
             if eval > max_eval:
                 max_eval = eval
                 best_move = move
@@ -30,7 +32,7 @@ def alphabeta(state, depth, alpha, beta, player, maximizing_player, neural_netwo
         for move in valid_moves:
             state_copy = state.copy()
             state_copy.make_move(move, player)
-            _, eval = alphabeta(state_copy, depth - 1, alpha, beta, 3 - player, True, neural_network)
+            _, eval = alphabeta(state_copy, depth - 1, alpha, beta, 3 - player, True, neural_network, node_counter)
             if eval < min_eval:
                 min_eval = eval
                 best_move = move

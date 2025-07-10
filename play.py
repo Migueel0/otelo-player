@@ -3,6 +3,7 @@ from minmax.minmax import alphabeta, utility
 from tensorflow import keras
 
 import random
+import time
 
 def print_board(board):
     print("  0 1 2 3 4 5 6 7")
@@ -24,7 +25,9 @@ def play():
     depth = 3 
     player1 = 1
     player2 = 2
-    
+    ia_times = []   # Lista para guardar los tiempos de la IA
+    ia_nodes = []   # Lista para guardar los nodos explorados por la IA
+
     while not game.is_game_over():
         if game.current_player == player1:
             print_board(game.board)
@@ -37,13 +40,8 @@ def play():
                 
             print("Movimientos válidos:", valid_moves)
             try:
-                row = int(input("Fila (0-7): "))
-                col = int(input("Columna (0-7): "))
-                if (row, col) not in valid_moves:
-                    print("Movimiento inválido. Intenta nuevamente.")
-                    continue
-                game.make_move((row, col), player1)
-                
+                move  = random.choice(game.get_valid_moves(player1))
+                game.make_move(move, player1)
             except ValueError:
                 print("Entrada inválida. Usa números del 0 al 7.")
         else:
@@ -57,7 +55,14 @@ def play():
                 print("IA no tiene movimientos válidos. Pasando turno.")
                 game.current_player = player1
                 continue
-            move, _ = alphabeta(game, depth, float('-inf'), float('inf'), player2, True, model)
+            start_time = time.time()  # Inicio medición
+            node_counter = [0]
+            move, _ = alphabeta(game, depth, float('-inf'), float('inf'), player2, True, model, node_counter)
+            elapsed = time.time() - start_time  
+            ia_times.append(elapsed)  
+            ia_nodes.append(node_counter[0])  # Guardar nodos de este turno
+            print(f"Tiempo de cálculo IA: {elapsed:.3f} segundos")
+            print(f"Nodos explorados por la IA: {node_counter[0]}")
             print(move)
             if move is not None:
                 game.make_move(move, player2)
@@ -79,6 +84,18 @@ def play():
         print("Resultado: Gana player 1 (negro)")
     else:
         print("Resultado: Gana player 2 (blanco)")
+
+    if ia_times:
+        avg_time = sum(ia_times) / len(ia_times)
+        print(f"Tiempo medio de cálculo IA: {avg_time:.3f} segundos")
+    else:
+        print("La IA no realizó ningún movimiento.")
+
+    if ia_nodes:
+        total_nodes = sum(ia_nodes)
+        print(f"Número total de nodos explorados por la IA: {total_nodes}")
+    else:
+        print("La IA no exploró ningún nodo.")
 
 
 if __name__ == "__main__":
