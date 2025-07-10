@@ -44,4 +44,4 @@ def generate_game_data(num_games=100):
     print(f"Guardados {len(boards)} estados en data/othello_data.npz")
 
 if __name__ == "__main__":
-    generate_game_data(num_games=10000)
+    generate_game_data(num_games=100)
