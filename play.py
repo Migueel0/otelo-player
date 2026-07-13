@@ -1,9 +1,12 @@
-from otelo.otelo import OthelloGame
-from minmax.minmax import alphabeta, utility
-from tensorflow import keras
-
+import argparse
 import random
 import time
+
+from tensorflow import keras
+
+from mcts.mcts import choose_move as choose_mcts_move
+from minimax.minimax import choose_move as choose_minimax_move
+from otelo.otelo import OthelloGame
 
 def print_board(board):
     print("  0 1 2 3 4 5 6 7")
@@ -19,14 +22,37 @@ def print_board(board):
         print()
 
 
+def parse_args():
+    parser = argparse.ArgumentParser(description='Juega una partida de Othello contra un agente entrenado.')
+    parser.add_argument('--agent', choices=['mcts', 'minimax'], default='mcts')
+    parser.add_argument('--model', default=None, help='Ruta del modelo .keras a cargar.')
+    parser.add_argument('--iterations', type=int, default=2000, help='Iteraciones para MCTS.')
+    parser.add_argument('--depth', type=int, default=3, help='Profundidad para minimax.')
+    return parser.parse_args()
+
+
+def load_model_for_agent(agent, model_path):
+    if model_path is None:
+        model_path = 'othello_model.keras' if agent == 'mcts' else 'minimax_model.keras'
+    return keras.models.load_model(model_path, compile=False)
+
+
+def choose_ai_move(game, agent, model, iterations, depth, node_counter=None):
+    if agent == 'mcts':
+        return choose_mcts_move(game, iterations, neural_network=model, node_counter=node_counter)
+    return choose_minimax_move(game, depth, neural_network=model, node_counter=node_counter)
+
+
 def play():
+    args = parse_args()
     game = OthelloGame()
-    model = keras.models.load_model('othello_model.h5') 
-    depth = 3 
+    model = load_model_for_agent(args.agent, args.model)
+    iterations = args.iterations
+    depth = args.depth
     player1 = 1
     player2 = 2
-    ia_times = []   # Lista para guardar los tiempos de la IA
-    ia_nodes = []   # Lista para guardar los nodos explorados por la IA
+    ia_times = []
+    ia_nodes = []
 
     while not game.is_game_over():
         if game.current_player == player1:
@@ -48,19 +74,19 @@ def play():
             print_board(game.board)
         
         if game.current_player == player2:
-            print("Turno de la IA (blanco - B)...")
+            print("Player 2 (blanco - B)")
             print_board(game.board)
             valid_moves = game.get_valid_moves(player2)
             if not valid_moves:
                 print("IA no tiene movimientos válidos. Pasando turno.")
                 game.current_player = player1
                 continue
-            start_time = time.time()  # Inicio medición
+            start_time = time.time()
             node_counter = [0]
-            move, _ = alphabeta(game, depth, float('-inf'), float('inf'), player2, True, model, node_counter)
+            move = choose_ai_move(game, args.agent, model, iterations, depth, node_counter)
             elapsed = time.time() - start_time  
             ia_times.append(elapsed)  
-            ia_nodes.append(node_counter[0])  # Guardar nodos de este turno
+            ia_nodes.append(node_counter[0])
             print(f"Tiempo de cálculo IA: {elapsed:.3f} segundos")
             print(f"Nodos explorados por la IA: {node_counter[0]}")
             print(move)
@@ -80,8 +106,8 @@ def play():
     winner = game.get_winner()
     if winner == 0:
         print("Resultado: Empate")
-    elif winner == player1:
-        print("Resultado: Gana player 1 (negro)")
+    elif winner == player2:
+        print("Resultado: Gana player 1 (negro): IA")
     else:
         print("Resultado: Gana player 2 (blanco)")
 
